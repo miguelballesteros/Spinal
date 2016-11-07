@@ -1,0 +1,6 @@
+/usr2/home/miguel/Spinal-LSTM-Mem/internal-lstm-parser/cnn/cnn/CMakeFiles/cnn.dir
+/usr2/home/miguel/Spinal-LSTM-Mem/internal-lstm-parser/cnn/cnn/CMakeFiles/cnn_shared.dir
+/usr2/home/miguel/Spinal-LSTM-Mem/internal-lstm-parser/parser/CMakeFiles/lstm-parse.dir
+/usr2/home/miguel/Spinal-LSTM-Mem/internal-lstm-parser/ner/CMakeFiles/ner.dir
+/usr2/home/miguel/Spinal-LSTM-Mem/internal-lstm-parser/nt-parser/CMakeFiles/nt-parser.dir
+/usr2/home/miguel/Spinal-LSTM-Mem/internal-lstm-parser/nt-parser/CMakeFiles/nt-parser-gen.dir
