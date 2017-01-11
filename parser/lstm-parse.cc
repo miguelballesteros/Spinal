@@ -111,13 +111,19 @@ struct ParserBuilder {
   Parameters* p_B; // buffer lstm to parser state
   Parameters* p_S; // stack lstm to parser state
   Parameters* p_H; // head matrix for composition function
+  Parameters* p_ADD; // head matrix for composition function addnodes
+	
   Parameters* p_D; // dependency matrix for composition function
   Parameters* p_R; // relation matrix for composition function
+  Parameters* p_ADD2; // relation matrix for composition function addnodes
+	
   Parameters* p_w2l; // word to LSTM input
   Parameters* p_p2l; // POS to LSTM input
   Parameters* p_t2l; // pretrained word embeddings to LSTM input
   Parameters* p_ib; // LSTM input bias
   Parameters* p_cbias; // composition function bias
+  Parameters* p_addbias; // composition function bias addnode
+	
   Parameters* p_p2a;   // parser state to action
   Parameters* p_action_start;  // action bias
   Parameters* p_abias;  // action bias
@@ -145,11 +151,17 @@ struct ParserBuilder {
       p_B(model->add_parameters({HIDDEN_DIM, HIDDEN_DIM})),
       p_S(model->add_parameters({HIDDEN_DIM, HIDDEN_DIM})),
       p_H(model->add_parameters({LSTM_INPUT_DIM, LSTM_INPUT_DIM})),
+      p_ADD(model->add_parameters({LSTM_INPUT_DIM, LSTM_INPUT_DIM})),    
+	
       p_D(model->add_parameters({LSTM_INPUT_DIM, LSTM_INPUT_DIM})),
       p_R(model->add_parameters({LSTM_INPUT_DIM, REL_DIM})),
+      p_ADD2(model->add_parameters({LSTM_INPUT_DIM, REL_DIM})),	
+	
       p_w2l(model->add_parameters({LSTM_INPUT_DIM, INPUT_DIM})),
       p_ib(model->add_parameters({LSTM_INPUT_DIM})),
       p_cbias(model->add_parameters({LSTM_INPUT_DIM})),
+      p_addbias(model->add_parameters({LSTM_INPUT_DIM})),
+	
       p_p2a(model->add_parameters({ACTION_SIZE, HIDDEN_DIM})),
       p_action_start(model->add_parameters({ACTION_DIM})),
       p_abias(model->add_parameters({ACTION_SIZE})),
@@ -393,12 +405,23 @@ vector<unsigned> log_prob_parser(ComputationGraph* hg,
     // variables in the computation graph representing the parameters
     Expression pbias = parameter(*hg, p_pbias);
     Expression H = parameter(*hg, p_H);
+  
+    Expression ADD = parameter(*hg, p_ADD);
+	
     Expression D = parameter(*hg, p_D);
     Expression R = parameter(*hg, p_R);
+
+    Expression ADD2 = parameter(*hg, p_ADD2);	
+	
     Expression cbias = parameter(*hg, p_cbias);
+    Expression addbias = parameter(*hg, p_cbias);
+	
     Expression S = parameter(*hg, p_S);
     Expression B = parameter(*hg, p_B);
     Expression A = parameter(*hg, p_A);
+    
+    
+	
     Expression ib = parameter(*hg, p_ib);
     Expression w2l = parameter(*hg, p_w2l);
     Expression p2l;
@@ -724,7 +747,7 @@ vector<unsigned> log_prob_parser(ComputationGraph* hg,
         spines[toki]+=pspine;
 
 
-        Expression composed = affine_transform({cbias, H, token, R, relation}); //I'm using the same H and the same R here... it should be fine.
+        Expression composed = affine_transform({addbias, ADD, token, ADD2, relation}); //new comp function for spines
         Expression nlcomposed = tanh(composed);
         stack_lstm.add_input(nlcomposed);
         stack.push_back(nlcomposed);
@@ -799,6 +822,8 @@ vector<unsigned> log_prob_parser_beam(ComputationGraph* hg,
     Expression D = parameter(*hg, p_D);
     Expression R = parameter(*hg, p_R);
     Expression cbias = parameter(*hg, p_cbias);
+    Expression addbias = parameter(*hg, p_addbias);
+	
     Expression S = parameter(*hg, p_S);
     Expression B = parameter(*hg, p_B);
     Expression A = parameter(*hg, p_A);
