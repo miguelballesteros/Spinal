@@ -414,7 +414,7 @@ vector<unsigned> log_prob_parser(ComputationGraph* hg,
     Expression ADD2 = parameter(*hg, p_ADD2);	
 	
     Expression cbias = parameter(*hg, p_cbias);
-    Expression addbias = parameter(*hg, p_cbias);
+    Expression addbias = parameter(*hg, p_addbias);
 	
     Expression S = parameter(*hg, p_S);
     Expression B = parameter(*hg, p_B);
