@@ -194,7 +194,7 @@ struct ParserBuilder {
     }
   }
 
-static bool IsActionForbidden(const string& a, unsigned bsize, unsigned ssize, vector<int> stacki, map<int,int> spinesi) {
+static bool IsActionForbidden(const string& a, unsigned bsize, unsigned ssize, vector<int> stacki, map<int,int> spinesi, int addnodes) {
   if (a[1]=='W' && ssize<3) return true; 
 
   int top=stacki[stacki.size()-1];
@@ -219,7 +219,7 @@ static bool IsActionForbidden(const string& a, unsigned bsize, unsigned ssize, v
   if (is_reduce && a[0]=='R' && spinesi[sec]==-1000) return true;
 
   if (ssize<1 && a[0]=='A') return true; //if stack is empty we cannot add non-terminal
-  
+  if (addnodes>40 && a[0]=='A') return true;
   return false;
 }
 
@@ -596,6 +596,7 @@ vector<unsigned> log_prob_parser(ComputationGraph* hg,
     string rootword;
     unsigned action_count = 0;  // incremented at each prediction
     vector<string> last_actions;
+    int naddnodes=0;
     while(stack.size() > 2 || buffer.size() > 1) {
 
       // get list of possible actions for the current parser state
@@ -614,7 +615,7 @@ vector<unsigned> log_prob_parser(ComputationGraph* hg,
 
       vector<unsigned> current_valid_actions;
       for (auto a: possible_actions) {
-        if (IsActionForbidden(setOfActions[a], buffer.size(), stack.size(), stacki,spinesi))
+        if (IsActionForbidden(setOfActions[a], buffer.size(), stack.size(), stacki,spinesi,naddnodes))
           continue;
         if (!(lastAs && setOfActions[a][0]=='A'))
           current_valid_actions.push_back(a);
@@ -669,6 +670,7 @@ vector<unsigned> log_prob_parser(ComputationGraph* hg,
         buffer_lstm.rewind_one_step();
         stacki.push_back(bufferi.back());
         bufferi.pop_back();
+	naddnodes=0;
       } 
       else if (ac=='S' && ac2=='W'){ //SWAP --- Miguel
           assert(stack.size() > 2); // dummy symbol means > 2 (not >= 2)
@@ -700,6 +702,7 @@ vector<unsigned> log_prob_parser(ComputationGraph* hg,
           stacki.push_back(jj);
 
           stack_lstm.add_input(stack.back());
+	  naddnodes=0;
 
           //stack_lstm.rewind_one_step();
           //buffer_lstm.rewind_one_step();
@@ -726,8 +729,10 @@ vector<unsigned> log_prob_parser(ComputationGraph* hg,
         stack_lstm.add_input(nlcomposed);
         stack.push_back(nlcomposed);
         stacki.push_back(headi);
+	naddnodes=0;
       }
       else { //ADD-NODE action
+	naddnodes++;
 
 	assert(stack.size() > 1);
         assert(ac == 'A');
