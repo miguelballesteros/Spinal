@@ -219,7 +219,7 @@ static bool IsActionForbidden(const string& a, unsigned bsize, unsigned ssize, v
   if (is_reduce && a[0]=='R' && spinesi[sec]==-1000) return true;
 
   if (ssize<1 && a[0]=='A') return true; //if stack is empty we cannot add non-terminal
-  if (addnodes>40 && a[0]=='A') return true;
+  if (addnodes>10 && a[0]=='A') return true;
   return false;
 }
 
