@@ -325,16 +325,28 @@ static map<int,string> compute_spines(unsigned sent_len, const vector<unsigned>&
     }
 
     else if (ac=='L' || ac=='R') { // LEFT or RIGHT
-      assert(stacki.size() > 2); // dummy symbol means > 2 (not >= 2)
-      assert(ac == 'L' || ac == 'R');
-      unsigned depi = 0, headi = 0;
-      (ac == 'R' ? depi : headi) = stacki.back();
-      stacki.pop_back();
-      (ac == 'R' ? headi : depi) = stacki.back();
-      stacki.pop_back();
-      stacki.push_back(headi);
-      //heads[depi] = headi;
-      //rels[depi] = actionString;
+      assert(stack.size() > 2); // dummy symbol means > 2 (not >= 2)
+        assert(ac == 'L' || ac == 'R');
+        Expression dep, head;
+        unsigned depi = 0, headi = 0;
+        (ac == 'R' ? dep : head) = stack.back();
+        (ac == 'R' ? depi : headi) = stacki.back();
+        stack.pop_back();
+        stacki.pop_back();
+        (ac == 'R' ? head : dep) = stack.back();
+        (ac == 'R' ? headi : depi) = stacki.back();
+        stack.pop_back();
+        stacki.pop_back();
+        if (headi == sent.size() - 1) rootword = intToWords.find(sent[depi])->second;
+        // composed = cbias + H * head + D * dep + R * relation
+        Expression composed = affine_transform({cbias, H, head, D, dep, R, relation});
+        Expression nlcomposed = tanh(composed);
+        stack_lstm.rewind_one_step();
+        stack_lstm.rewind_one_step();
+        stack_lstm.add_input(nlcomposed);
+        stack.push_back(nlcomposed);
+        stacki.push_back(headi);
+      
     }
     else {
         assert(stacki.size() > 1);
